@@ -19,7 +19,7 @@ def _gensource_impl(ctx):
   flavor = ctx.attr.flavor
   if flavor == "normal":
     flavor = ""
-  ctx.action(
+  ctx.actions.run(
       inputs = [ctx.executable._java_plugin] + srcs + includes,
       outputs = [srcdotjar],
       executable = ctx.executable._protoc,
@@ -29,8 +29,8 @@ def _gensource_impl(ctx):
             .format(flavor, str(ctx.attr.enable_deprecated).lower(), srcdotjar.path)]
           + ["-I{0}={1}".format(_path_ignoring_repository(include), include.path) for include in includes]
           + [_path_ignoring_repository(src) for src in srcs])
-  ctx.action(
-      command = "cp $1 $2",
+  ctx.actions.run(
+      executable = "cp",
       inputs = [srcdotjar],
       outputs = [ctx.outputs.srcjar],
       arguments = [srcdotjar.path, ctx.outputs.srcjar.path])
