@@ -1,0 +1,41 @@
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+
+proto_library(
+    name = "hello_proto",
+    srcs = [
+        "src/main/proto/Hello.proto",
+        "src/main/proto/Hello3.proto",
+    ],
+    import_prefix = "demo/proto",
+    strip_import_prefix = "src/main/proto",
+)
+
+java_proto_library(
+    name = "hello_java_proto",
+    deps = [":hello_proto"],
+)
+
+java_grpc_library(
+    name = "hello_java_grpc",
+    srcs = ["hello_proto"],
+    deps = ["hello_java_proto"],
+)
+
+proto_library(
+    name = "hello2_proto",
+    srcs = ["src/main/proto/Hello2.proto"],
+    import_prefix = "demo/proto",
+    strip_import_prefix = "src/main/proto",
+    deps = [":hello_proto"],
+)
+
+java_proto_library(
+    name = "hello2_java_proto",
+    deps = [":hello2_proto"],
+)
+
+java_grpc_library(
+    name = "hello2_java_grpc",
+    srcs = ["hello2_proto"],
+    deps = ["hello2_java_proto"],
+)
