@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package demo.proto;
+
+option java_multiple_files = true;
+option java_package = "demo.proto";
+option java_outer_classname = "HelloWorld3Proto";
+
+/*
+ * Define the service's operations
+ */
+service Greeter3 {
+    rpc Greet (HelloRequest3) returns (HelloResponse3) {}
+}
+
+/*
+ * Define the service's data structures
+ */
+message HelloRequest3 {
+    string name = 1;
+}
+
+message HelloResponse3 {
+    string message = 1;
+}
