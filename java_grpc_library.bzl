@@ -58,14 +58,53 @@ java_rpc_toolchain = rule(
     implementation = _java_rpc_toolchain_impl,
 )
 
-# "repository" here is for Bazel builds that span multiple WORKSPACES.
-def _path_ignoring_repository(f):
-    if len(f.owner.workspace_root) == 0:
-        return f.short_path
-    return f.path[f.path.find(f.owner.workspace_root) + len(f.owner.workspace_root) + 1:]
 
-def _create_include_path(include):
-    return "-I{0}={1}".format(_path_ignoring_repository(include), include.path)
+# Taken from bazelbuild/rules_go license: Apache 2
+# https://github.com/bazelbuild/rules_go/blob/528f6faf83f85c23da367d61f784893d1b3bd72b/proto/compiler.bzl#L94
+# replaced `prefix = paths.join(..` with `prefix = "/".join(..`
+def _proto_path(src, proto):
+    """proto_path returns the string used to import the proto. This is the proto
+    source path within its repository, adjusted by import_prefix and
+    strip_import_prefix.
+
+    Args:
+        src: the proto source File.
+        proto: the ProtoInfo provider.
+
+    Returns:
+        An import path string.
+    """
+    if not hasattr(proto, "proto_source_root"):
+        # Legacy path. Remove when Bazel minimum version >= 0.21.0.
+        path = src.path
+        root = src.root.path
+        ws = src.owner.workspace_root
+        if path.startswith(root):
+            path = path[len(root):]
+        if path.startswith("/"):
+            path = path[1:]
+        if path.startswith(ws):
+            path = path[len(ws):]
+        if path.startswith("/"):
+            path = path[1:]
+        return path
+
+    if proto.proto_source_root == ".":
+        # true if proto sources were generated
+        prefix = src.root.path + "/"
+    elif proto.proto_source_root.startswith(src.root.path):
+        # sometimes true when import paths are adjusted with import_prefix
+        prefix = proto.proto_source_root + "/"
+    else:
+        # usually true when paths are not adjusted
+        prefix = "/".join([src.root.path, proto.proto_source_root]) + "/"
+    if not src.path.startswith(prefix):
+        # sometimes true when importing multiple adjusted protos
+        return src.path
+    return src.path[len(prefix):]
+
+def _src_path(src):
+    return src.path
 
 def _java_rpc_library_impl(ctx):
     if len(ctx.attr.srcs) != 1:
@@ -75,19 +114,22 @@ def _java_rpc_library_impl(ctx):
                "same package as consuming rule").format(ctx.label, ctx.attr.srcs[0].label))
 
     toolchain = ctx.attr._toolchain[_JavaRpcToolchainInfo]
-    srcs = ctx.attr.srcs[0][ProtoInfo].direct_sources
-    includes = ctx.attr.srcs[0][ProtoInfo].transitive_imports
+    proto = ctx.attr.srcs[0][ProtoInfo]
+    srcs = proto.check_deps_sources
+    descriptors = proto.transitive_descriptor_sets
 
     srcjar = ctx.actions.declare_file("%s-proto-gensrc.jar" % ctx.label.name)
 
     args = ctx.actions.args()
     args.add(toolchain.plugin, format = "--plugin=protoc-gen-rpc-plugin=%s")
     args.add("--rpc-plugin_out={0}:{1}".format(toolchain.plugin_arg, srcjar.path))
-    args.add_all(includes, map_each = _create_include_path)
-    args.add_all(srcs, map_each = _path_ignoring_repository)
+    args.add_joined("--descriptor_set_in", descriptors, join_with = ":")
+    for src in srcs.to_list():
+        args.add("-I{0}={1}".format(_proto_path(src, proto), src.path))
+    args.add_all(srcs, map_each = _src_path)
 
     ctx.actions.run(
-        inputs = depset([toolchain.plugin] + srcs, transitive = [includes]),
+        inputs = depset([toolchain.plugin], transitive = [srcs, descriptors]),
         outputs = [srcjar],
         executable = toolchain.protoc,
         arguments = [args],
