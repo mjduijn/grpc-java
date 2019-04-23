@@ -83,19 +83,19 @@ java_binary(
     runtime_deps = [":consumer"],
 )
 
-android_library(
-    name = "consumer_android",
-    srcs = ["Consumer.java"],
-    deps = [
-        ":message_and_service_java_grpc_lite",
-        ":service_java_grpc_lite",
-        "//api",  # fixes warning for io.grpc.MethodDescriptor not found
-    ],
-)
-
-android_binary(
-    name = "consumer_app",
-    aapt_version = "aapt",
-    manifest = "AndroidManifest.xml",
-    deps = [":consumer_android"],
-)
+#android_library(
+#    name = "consumer_android",
+#    srcs = ["Consumer.java"],
+#    deps = [
+#        ":message_and_service_java_grpc_lite",
+#        ":service_java_grpc_lite",
+#        "//api",  # fixes warning for io.grpc.MethodDescriptor not found
+#    ],
+#)
+#
+#android_binary(
+#    name = "consumer_app",
+#    aapt_version = "aapt",
+#    manifest = "AndroidManifest.xml",
+#    deps = [":consumer_android"],
+#)
