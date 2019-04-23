@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package test2;
+
+import "A.proto";
+
+service GreeterC {
+    rpc Greet (test1.HelloRequest) returns (test1.HelloResponse) {}
+    rpc MultiGreet (test1.HelloRequest) returns (stream test1.HelloResponse) {}
+    rpc StreamGreet (stream test1.HelloRequest) returns (stream test1.HelloResponse) {}
+}
