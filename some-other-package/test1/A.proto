@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package test1;
+
+/*
+ * Define the service's operations
+ */
+service GreeterA {
+    rpc Greet (HelloRequest) returns (HelloResponse) {}
+    rpc MultiGreet (HelloRequest) returns (stream HelloResponse) {}
+    rpc StreamGreet (stream HelloRequest) returns (stream HelloResponse) {}
+}
+
+/*
+ * Define the service's data structures
+ */
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloResponse {
+    string message = 1;
+}

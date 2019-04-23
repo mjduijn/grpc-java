@@ -1,0 +1,19 @@
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+
+proto_library(
+    name = "c_proto",
+    srcs = ["C.proto"],
+    proto_source_root = "some-package/test2",
+    deps = ["//some-package/test1:ab_proto"],
+)
+
+java_proto_library(
+    name = "c_java_proto",
+    deps = ["c_proto"],
+)
+
+java_grpc_library(
+    name = "c_java_grpc",
+    srcs = [":c_proto"],
+    deps = [":c_java_proto"],
+)
