@@ -4,6 +4,6 @@ load("//:repositories.bzl", "grpc_java_repositories")
 
 grpc_java_repositories()
 
-android_sdk_repository(
-    name = "androidsdk",
-)
+#android_sdk_repository(
+#    name = "androidsdk",
+#)
