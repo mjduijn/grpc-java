@@ -5,6 +5,8 @@ option java_multiple_files = true;
 option java_package = "demo.proto";
 
 import "demo/proto/Hello.proto";
+// Import below never works due to proto_library not accepting an absolute path after setting an import_prefix
+//import "testing-proto/src/main/proto/Hello.proto";
 
 service Greeter2 {
     rpc Greet (HelloRequest) returns (HelloResponse) {}
